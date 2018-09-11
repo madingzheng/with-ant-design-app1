@@ -11,7 +11,6 @@ const withAuth = InnerComponent => class extends React.Component{
                 Router.push('/');
                 alert('请登入');
             },1000)
-
         }
     }
     render(){

@@ -2,39 +2,59 @@ import React from 'react'
 import { Form, Icon, Input, Button } from 'antd';
 import Router from 'next/router'
 import { observer } from 'mobx-react'
-import { observable , action} from 'mobx';
-import Service from './service';
 import authService from './auth'
-
+import axios from 'axios'
 
 const FormItem = Form.Item;
 
-class LoginSubmit {
-    @observable userName = '';
-    @observable password = '';
-
-    @action set(username,password) {
-        this.userName = username;
-        this.password = password;
-    }
-}
-
-const login = new LoginSubmit();
 
 
 @observer
 class NormalLoginForm extends React.Component {
+
     handleSubmit = (e) => {
         e.preventDefault();
         this.props.form.validateFields((err, values) => {
             if (!err) {
-                authService.loggedIn = true;
-                Router.push('/private')
+                const url = 'http://www.neoscholars.com:10020/dauth/accountLogin';
+                axios.post(url,{
+                    "account": values.userName,
+                    "password":values.password
+                }).then(function (response) {
+                        if (response.data) {
+                            localStorage.setItem('token',response.data);
+                            Router.push('/private')
+                            authService.loggedIn = true;
+                        }
+                        console.log(response);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+
             }else {
                 authService.loggedIn = false;
+                localStorage.setItem('loggedIn',false);
             }
         });
     };
+
+    handleButtonClick = () => {
+        const url = 'http://www.neoscholars.com:10020/dauth/verify';
+        axios({
+            method:"POST",
+            url: url,
+            headers:{
+                "Authorization": localStorage.getItem('token')
+            }
+        }).then(function (response) {
+            console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    };
+
 
     render() {
         const { getFieldDecorator } = this.props.form;
@@ -58,8 +78,13 @@ class NormalLoginForm extends React.Component {
                     <Button type="primary" htmlType="submit" className="login-form-button" style={{width:"100%"}}>
                         Log in
                     </Button>
+                    <Button type="primary" onClick={this.handleButtonClick}>请求第二个API</Button>
                 </FormItem>
             </Form>
+
+
+
+
         );
     }
 }
