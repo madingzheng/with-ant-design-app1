@@ -49,6 +49,8 @@ class NormalLoginForm extends React.Component {
             }
         }).then(function (response) {
             console.log(response);
+            Router.push('/private')
+            authService.loggedIn = true;
             })
             .catch(function (error) {
                 console.log(error);
